@@ -6,6 +6,7 @@ class PlanSerializer(serializers.ModelSerializer): #creating a class called Plan
         model = Plan #adding Plan to model
         fields = ['name', 'gym', 'price'] #Now seperating the Plan values in fields.
 class MemberSerializer(serializers.ModelSerializer): #creating a class called MemberSerializer. In that bracet importing two of the called models.
+    gym = serializers.PrimaryKeyRelatedField(read_only=True) #creating a gym variable and assigning it to PrimaryKeyRelatedField and making it read only.
     plan = PlanSerializer(read_only=True) #creating a plan variable and assigning it to PlanSerializer and making it read only.
     plan_id = serializers.PrimaryKeyRelatedField(queryset=Plan.objects.all(), source='plan', write_only=True) #creating a plan_id variable and assigning it to PrimaryKeyRelatedField and making it write only.
     class Meta: #creating a second class in Main class

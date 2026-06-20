@@ -1,7 +1,3 @@
-import re
-import stat
-from urllib import request
-
 from django.shortcuts import render
 from .serializers import MemberSerializer, PlanSerializer, PaymentSerializer
 from .models import Member, Plan, Payment
@@ -24,13 +20,19 @@ def health_check(request):
 @permission_classes([AllowAny])
 def member_list(request):
     if request.method == 'GET':
-        members = Member.objects.all()
+        try:
+            members = request.user.gym_profile.members.all()  # only return members of the logged-in user's gym
+        except AttributeError:
+            return Response({'error': 'User is not associated with a gym profile'}, status=400)
         serializer = MemberSerializer(members, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
         serializer = MemberSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save(gym = request.user.gym_profile)  # set the gym to the logged-in user's gym profile)
+            except AttributeError:
+                return Response({'error': 'User is not associated with a gym profile'}, status=400)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
@@ -48,7 +50,10 @@ def member_detail(request, pk):
     elif request.method == 'PUT':
         serializer = MemberSerializer(member, data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save()
+            except AttributeError:
+                return Response({'error': 'User is not associated with a gym profile'}, status=400)
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
     elif request.method == 'DELETE':
